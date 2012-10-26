@@ -149,14 +149,6 @@ int StandardLoop () {
 						transx = wunits + (ix * (xlimit - fxdiff));			
 						fprintf(file, "%f	%f	0\n", transx, hunits);
 						translations++;
-						if (wunits == wleg && hunits == 0) {
-							xone = transx;
-							yone = hunits;
-						}
-						if (wunits >= (xlimit - dwleg) && hunits == hleg && wunits <= (xlimit - dwleg + x) && ix == 1) {
-							xtwo = wunits;
-							ytwo = hunits;
-						}
 					}
 				}			
 			} else {
@@ -188,13 +180,6 @@ int StandardLoop () {
 
 	}
 
-	distx = xtwo - xone;
-	disty = ytwo - yone;
-	distx *= distx;
-	disty *= disty;
-	distance = distx + disty;
-	distance = sqrtf(distance);
-	
 	// Close the file
 	fclose(file);
 
@@ -251,7 +236,6 @@ int main () {
 	printf("Translations: %d\n", translations);
 	printf("Fxdiff: %f\n", fxdiff);
 	printf("Fydiff: %f\n", fydiff);
-	printf("Distance: %f\n", distance);
 	
 	return 0;
 }

@@ -1,9 +1,27 @@
-/* 
+/*
+ * graphene-new.c
+ * 
  * Tool to take an input of height and width and
  * generate a coordinate list of atoms in a sheet 
  * of graphene with aforementioned dimensions.
- *
- * Trevin Gandhi
+ * 
+ * Copyright 2012 Trevin Gandhi <sonicxml@gmail.com>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ * 
  */
 
 #include <math.h>
@@ -16,7 +34,6 @@
 // Difference Numbers: the hexagon won't always go right up to the 
 // nanometers specified, so there are gaps created when translating. 
 // Solving for fxdiff and fydiff eliminate those.
-static unsigned int xdiff, ydiff;
 static float fxdiff, fydiff;
 // Hexagon Cut Horizontal
 static unsigned int hexagonx;
@@ -33,7 +50,6 @@ static unsigned int acx = 0, acy = 0;
 static unsigned int atoms = 0;
 static unsigned int translations = 0;
 static float distance;
-
 int HexagonLoop () {
 	// Add in height values
 	hexagony = (y/hexy);
@@ -76,6 +92,10 @@ int RectLoop () {
 	
 	while (hunits <= ylimit) {
 		for (wunits = (pointy>0?wleg:0); wunits <= xlimit; wunits += dwleg) {
+			
+			// This only runs once, finds where antidots should be. 
+			// TODO: Test to see if removing for loop doesn't have any
+			// undesired effects, which it shouldn't have
 			for (i = 0; i < 2; i += 2) {
 				if ((hunits >= ((i * recth) + recty) && hunits <= ((i * recth) + oppy)) 
 					&& (wunits >= (rectx) && wunits <= (oppx))) {
@@ -85,6 +105,7 @@ int RectLoop () {
 					cut = false;
 				}
 			}
+			
 			if (!cut) {
 				fprintf(file, "%f	%f	0\n", wunits, hunits);
 				atoms++;
@@ -142,10 +163,11 @@ int StandardLoop () {
 		for (wunits = (pointy>0?wleg:0); wunits <= xlimit; wunits += dwleg) {
 			fprintf(file, "%f	%f	0\n", wunits, hunits);
 			atoms++;
+			
+			// Start Translations, if applicable
 			if (ytrans == 0 && xtrans != 0) {
 				for (ix = 1; ix <= xtrans; ix++) {
 					if (wunits != 0) {
-						// transx = (wunits) + (ix * x) - (ix * fxdiff);
 						transx = wunits + (ix * (xlimit - fxdiff));			
 						fprintf(file, "%f	%f	0\n", transx, hunits);
 						translations++;
@@ -195,24 +217,13 @@ int main () {
 	}
 	
 	// Limits for the loops
-	// Limits if x and y are hexagons
-	// ylimit = (y * ((2 * hleg) + 1.42)) + 1;
-	// xlimit = (x * dwleg) + 1;
-	// Limits if x and y are nm
-	// ylimit = y + (6 * hleg);
-	// xlimit = x - dwleg;
-	ylimit = y + 1; // - (5 * hleg);
+	// Add 1 to x and y to allow for hexagons to complete
+	// TODO: might want to make this just less than the distance across a hexagon
+	ylimit = y + 1;
 	xlimit = x + 1;
-	
-	// xdiff = (xlimit / dwleg);
-	// fxdiff = (xdiff + 0.5);
-	// fxdiff = (xlimit - (fxdiff * dwleg));
 	
 	fxdiff = fmod(xlimit, dwleg);
 	
-	// ydiff = (ylimit / (5 * hleg));
-	// fydiff = (ydiff + 0.25);
-	// fydiff = (ylimit - (fydiff * (5 * hleg)));
 	fydiff = 5 * hleg;
 	fydiff = fmod(ylimit, fydiff);
 	

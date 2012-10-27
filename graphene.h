@@ -51,8 +51,8 @@
 //
 
 // x and y are the dimensions of the unit cell
-static unsigned int x = 20;
-static unsigned int y = 40;
+static unsigned int x = 3;
+static unsigned int y = 34;
 // 1 if above units are nm, 0 if angstroms
 #define units		0
 // Tells what level of the hexagon it's creating
@@ -60,7 +60,7 @@ static signed int pointy = 1;
 // Number of times to translate y-values
 static int ytrans = 0;
 // Number of times to translate x-values
-#define xtrans		0
+#define xtrans		2
 // Which kind of cut to make
 // 0 = none, 1 = rectangle, 2 = hexagon
 #define cuttype		0

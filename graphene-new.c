@@ -218,9 +218,9 @@ int main () {
 	// Add distance across hexagon to x
 	// and height of hexagon to y 
 	// to allow for hexagons to complete
-	ylimit = y + (2*hleg) + 1.42;
-	xlimit = x + dwleg;
-	
+	ylimit = y; // + (2*hleg) + 1.42;
+	xlimit = x; // + dwleg;
+
 	fxdiff = fmod(xlimit, dwleg);
 	
 	fydiff = 5 * hleg;

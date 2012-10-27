@@ -51,8 +51,8 @@
 //
 
 // x and y are the dimensions of the unit cell
-static unsigned int x = 20;
-static unsigned int y = 40;
+static unsigned int x = 3;
+static unsigned int y = 34;
 // 1 if above units are nm, 0 if angstroms
 #define units		0
 // Number of times to translate y-values

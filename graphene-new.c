@@ -235,9 +235,9 @@ int main () {
 	ylimit = y; // + (2*hleg) + 1.42;
 	xlimit = x; // + dwleg;
 
-	fxdiff = fmod(xlimit, dwleg);
+	fxdiff = fmod(xlimit, ((armchair)?2.84:dwleg));
 	
-	fydiff = 5 * hleg;
+	fydiff = ((armchair)?dwleg:(2.84));
 	fydiff = fmod(ylimit, fydiff);
 	
 	printf("Unit Cell X: %f\n", (xlimit - fxdiff));

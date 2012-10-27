@@ -227,12 +227,12 @@ int main () {
 	printf("Unit Cell X: %f\n", (xlimit - fxdiff));
 	printf("Unit Cell Y: %f\n", (ylimit - fydiff));
 
-	if (cuttype == 0) {
-		StandardLoop();
+	if (cuttype == 2) {
+		HexagonLoop();
 	} else if (cuttype == 1) {
 		RectLoop();
 	} else {
-		HexagonLoop();
+		StandardLoop();
 	}
 
 	if (ytrans != 0)

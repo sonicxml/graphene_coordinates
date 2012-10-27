@@ -60,10 +60,10 @@ static signed int pointy = 1;
 // Number of times to translate y-values
 static int ytrans = 0;
 // Number of times to translate x-values
-#define xtrans		3
+#define xtrans		0
 // Which kind of cut to make
 // 0 = none, 1 = rectangle, 2 = hexagon
-#define cuttype		1
+#define cuttype		0
 
 
 //

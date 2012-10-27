@@ -213,10 +213,11 @@ int main () {
 	}
 	
 	// Limits for the loops
-	// Add 1 to x and y to allow for hexagons to complete
-	// TODO: might want to make this just less than the distance across a hexagon
-	ylimit = y + 1;
-	xlimit = x + 1;
+	// Add distance across hexagon to x
+	// and height of hexagon to y 
+	// to allow for hexagons to complete
+	ylimit = y + (2*hleg) + 1.42;
+	xlimit = x + dwleg;
 	
 	fxdiff = fmod(xlimit, dwleg);
 	

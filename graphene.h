@@ -55,8 +55,6 @@ static unsigned int x = 20;
 static unsigned int y = 40;
 // 1 if above units are nm, 0 if angstroms
 #define units		0
-// Tells what level of the hexagon it's creating
-static signed int pointy = 1, holey = 1;
 // Number of times to translate y-values
 static int ytrans = 0;
 // Number of times to translate x-values

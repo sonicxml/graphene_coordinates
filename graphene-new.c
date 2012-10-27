@@ -35,6 +35,8 @@
 // nanometers specified, so there are gaps created when translating. 
 // Solving for fxdiff and fydiff eliminate those.
 static float fxdiff, fydiff;
+// Tells what level of the hexagon it's creating
+static signed int pointy = 1, holey = 1;
 // Hexagon Cut Horizontal
 static unsigned int hexagonx;
 // Hexagon Cut Vertical

@@ -152,13 +152,13 @@ int RectLoop () {
 int StandardLoop () {
 
 	float transx, transy, iy = 1, ix = 1;
-
+	int checker = 0;
 	// Open File
 	FILE *file;
 	file = fopen("graphenecoordinates.txt", "w");
 
-	while (hunits <= ylimit) {
-		for (wunits = (pointy>0?wleg:0); wunits <= xlimit; wunits += dwleg) {
+	for (hunits = 0; hunits <= ylimit; hunits += (armchair == 1) ? wleg : (hunits == 0) ? hleg : hleg * (abs(pointy) > 1 ? 2 : 1)) {
+		for (wunits = ((pointy > 0) ? (armchair == 1) ? hleg : wleg : 0); wunits <= xlimit; wunits += (armchair == 1) ? (holey > 0) ? hleg : (2.84 - hleg) : dwleg) {
 			fprintf(file, "%f	%f	0\n", wunits, hunits);
 			atoms++;
 			
@@ -184,19 +184,33 @@ int StandardLoop () {
 			}
 			
 			if (hunits == 0)
-				acx++;				
+				acx++;
+				
+			if (armchair) {
+				if (checker == 0 && pointy == 1) {
+					holey = 1;
+					checker = 1;
+				} else if (checker == 0 && pointy == -1) {
+					holey = -1;
+					checker = 1;
+				} else {
+					holey += sign(holey);
+					if ((abs(holey)) > 1) 
+						holey = -sign(holey);
+				}				
+			}
 		}
-	
+		
 		acy++;
 		if (hunits == 0) {
 			pointy = -1;
-			hunits += hleg;
 		} else {
 			pointy += sign(pointy);
-			if ((abs(pointy)) > 2) 
+			if ((abs(pointy)) > ((armchair == 1)?1:2)) 
 				pointy = -sign(pointy);
-			hunits += hleg * (abs(pointy) > 1 ? 2 : 1);
 		}
+		
+		checker = 0;
 
 	}
 

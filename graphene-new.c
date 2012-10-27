@@ -50,7 +50,6 @@ static double ylimit, xlimit;
 // Atom counters
 static unsigned int acx = 0, acy = 0;
 static unsigned int atoms = 0;
-static unsigned int translations = 0;
 
 // Still a WIP
 int HexagonLoop () {
@@ -170,7 +169,6 @@ int StandardLoop () {
 					if (wunits != 0) {
 						transx = wunits + (ix * (xlimit - fxdiff));			
 						fprintf(file, "%f	%f	0\n", transx, hunits);
-						translations++;
 					}
 				}			
 			} else {
@@ -259,7 +257,6 @@ int main () {
 	printf("Atoms along X Unit Cell: %d\n", acx);
 	printf("Atoms along Y Unit Cell: %d\n", acy);
 	printf("Atoms in Unit Cell: %d\n", atoms);
-	printf("Translations: %d\n", translations);
 	printf("Fxdiff: %f\n", fxdiff);
 	printf("Fydiff: %f\n", fydiff);
 	

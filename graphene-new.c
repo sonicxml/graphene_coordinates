@@ -50,7 +50,7 @@ static unsigned int acx = 0, acy = 0;
 static unsigned int atoms = 0;
 static unsigned int translations = 0;
 
-
+// Still a WIP
 int HexagonLoop () {
 	// Add in height values
 	hexagony = (y/hexy);
@@ -72,6 +72,7 @@ int HexagonLoop () {
 	return 0;
 }
 
+// Creates rectangular (including square) antidots
 int RectLoop () {
 	float transx, transy, iy = 1, ix = 1;
 	unsigned int oppx, oppy;	
@@ -147,6 +148,7 @@ int RectLoop () {
 	return 0;
 }
 
+// Creates a standard graphene sheet without antidots
 int StandardLoop () {
 
 	float transx, transy, iy = 1, ix = 1;

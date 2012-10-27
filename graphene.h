@@ -81,6 +81,7 @@ static unsigned int rectw = 2;
 
 //
 // Hexagon cuts
+// N.B. - STILL A WIP
 //
 
 // TODO: Automatically calculate these values based on given {length, radius}

@@ -49,7 +49,8 @@ static double ylimit, xlimit;
 static unsigned int acx = 0, acy = 0;
 static unsigned int atoms = 0;
 static unsigned int translations = 0;
-static float distance;
+
+
 int HexagonLoop () {
 	// Add in height values
 	hexagony = (y/hexy);
@@ -72,7 +73,7 @@ int HexagonLoop () {
 }
 
 int RectLoop () {
-	float transx, transy, i, iy = 1, ix = 1;
+	float transx, transy, iy = 1, ix = 1;
 	unsigned int oppx, oppy;	
 	bool cut;
 
@@ -93,17 +94,12 @@ int RectLoop () {
 	while (hunits <= ylimit) {
 		for (wunits = (pointy>0?wleg:0); wunits <= xlimit; wunits += dwleg) {
 			
-			// This only runs once, finds where antidots should be. 
-			// TODO: Test to see if removing for loop doesn't have any
-			// undesired effects, which it shouldn't have
-			for (i = 0; i < 2; i += 2) {
-				if ((hunits >= ((i * recth) + recty) && hunits <= ((i * recth) + oppy)) 
-					&& (wunits >= (rectx) && wunits <= (oppx))) {
-					cut = true;
-					break;						
-				} else {
-					cut = false;
-				}
+			// Check to see if there should be an antidot at that coordinate
+			if ((hunits >= recty && hunits <= oppy) 
+				&& (wunits >= rectx && wunits <= oppx)) {
+				cut = true;
+			} else {
+				cut = false;
 			}
 			
 			if (!cut) {
@@ -153,7 +149,7 @@ int RectLoop () {
 
 int StandardLoop () {
 
-	float transx, transy, xone, yone, xtwo, ytwo, distx, disty, iy = 1, ix = 1;
+	float transx, transy, iy = 1, ix = 1;
 
 	// Open File
 	FILE *file;

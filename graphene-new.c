@@ -76,7 +76,7 @@ int HexagonLoop () {
 // Creates rectangular (including square) antidots
 int RectLoop () {
 	float transx, transy, iy = 1, ix = 1;
-	unsigned int oppx, oppy;	
+	unsigned int oppx, oppy, checker = 0;
 	bool cut;
 
 	// Open File
@@ -93,8 +93,8 @@ int RectLoop () {
 	oppx = rectx + rectw;
 	oppy = recty + recth;
 	
-	while (hunits <= ylimit) {
-		for (wunits = (pointy>0?wleg:0); wunits <= xlimit; wunits += dwleg) {
+	for (hunits = 0; hunits <= ylimit; hunits += (armchair == 1) ? wleg : (hunits == 0) ? hleg : hleg * (abs(pointy) > 1 ? 2 : 1)) {
+		for (wunits = ((pointy > 0) ? (armchair == 1) ? hleg : wleg : 0); wunits <= xlimit; wunits += (armchair == 1) ? (holey > 0) ? hleg : (2.84 - hleg) : dwleg) {
 			
 			// Check to see if there should be an antidot at that coordinate
 			if ((hunits >= recty && hunits <= oppy) 
@@ -127,18 +127,32 @@ int RectLoop () {
 			
 			if (hunits == 0)
 				acx++;
+				
+			if (armchair) {
+				if (checker == 0 && pointy == 1) {
+					holey = 1;
+					checker = 1;
+				} else if (checker == 0 && pointy == -1) {
+					holey = -1;
+					checker = 1;
+				} else {
+					holey += sign(holey);
+					if ((abs(holey)) > 1) 
+						holey = -sign(holey);
+				}				
+			}
 		}
 		
 		acy++;
 		if (hunits == 0) {
 			pointy = -1;
-			hunits += hleg;
 		} else {
 			pointy += sign(pointy);
-			if ((abs(pointy)) > 2) 
+			if ((abs(pointy)) > ((armchair == 1)?1:2)) 
 				pointy = -sign(pointy);
-			hunits += hleg * (abs(pointy) > 1 ? 2 : 1);
 		}
+	
+	checker = 0;
 
 	}
 

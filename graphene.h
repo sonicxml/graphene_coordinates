@@ -31,6 +31,9 @@
 // Vertical leg: Hypotenuse (1.42 Angstroms) / 2 because it's a 30-60-90 triangle
 #define hleg		0.71
 
+// hleg * 4 (height of hexagon)
+#define dhleg		2.84
+
 // Horizontal leg: hleg * sqrt(3) (for the other leg of the triangle)
 #define wleg 		1.229756073
 

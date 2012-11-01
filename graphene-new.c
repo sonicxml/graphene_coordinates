@@ -93,8 +93,8 @@ int RectLoop () {
 	oppx = rectx + rectw;
 	oppy = recty + recth;
 	
-	for (hunits = 0; hunits <= ylimit; hunits += (armchair == 1) ? wleg : (hunits == 0) ? hleg : hleg * (abs(pointy) > 1 ? 2 : 1)) {
-		for (wunits = ((pointy > 0) ? (armchair == 1) ? hleg : wleg : 0); wunits <= xlimit; wunits += (armchair == 1) ? (holey > 0) ? hleg : (2.84 - hleg) : dwleg) {
+	for (hunits = 0; hunits <= ylimit; hunits += (armchair) ? wleg : (hunits == 0) ? hleg : hleg * (abs(pointy) > 1 ? 2 : 1)) {
+		for (wunits = ((pointy > 0) ? (armchair) ? hleg : wleg : 0); wunits <= xlimit; wunits += (armchair) ? (holey > 0) ? hleg : (dhleg - hleg) : dwleg) {
 			
 			// Check to see if there should be an antidot at that coordinate
 			if ((hunits >= recty && hunits <= oppy) 
@@ -107,21 +107,14 @@ int RectLoop () {
 			if (!cut) {
 				fprintf(file, "%f	%f	0\n", wunits, hunits);
 				atoms++;
-				if (ytrans == 0 && xtrans != 0) {
-					for (ix = 1; ix <= xtrans; ix++) {
+				for (ix = 1; ix <= xtrans; ix++) {
 						transx = wunits + (ix * (xlimit - fxdiff));
 						fprintf(file, "%f	%f	0\n", transx, hunits);
-					}
-				} else {
-					for (iy = 1; iy <= ytrans; iy++) {
-						transy = hunits + (iy * (ylimit - fydiff));
-						for (ix = 1; ix <= xtrans; ix++) {
-							transx = wunits + (ix * (xlimit - fxdiff));
+						for (iy = 1; iy <= ytrans; iy++) {
+							transy = hunits + (iy * (ylimit - fydiff));
 							fprintf(file, "%f	%f	0\n", wunits, transy);
-							fprintf(file, "%f	%f	0\n", transx, hunits);
 							fprintf(file, "%f	%f	0\n", transx, transy);
 						}
-					}				
 				}
 			}
 			
@@ -148,7 +141,7 @@ int RectLoop () {
 			pointy = -1;
 		} else {
 			pointy += sign(pointy);
-			if ((abs(pointy)) > ((armchair == 1)?1:2)) 
+			if ((abs(pointy)) > ((armchair)?1:2)) 
 				pointy = -sign(pointy);
 		}
 	
@@ -172,29 +165,20 @@ int StandardLoop () {
 	FILE *file;
 	file = fopen("graphenecoordinates.txt", "w");
 
-	for (hunits = 0; hunits <= ylimit; hunits += (armchair == 1) ? wleg : (hunits == 0) ? hleg : hleg * (abs(pointy) > 1 ? 2 : 1)) {
-		for (wunits = ((pointy > 0) ? (armchair == 1) ? hleg : wleg : 0); wunits <= xlimit; wunits += (armchair == 1) ? (holey > 0) ? hleg : (2.84 - hleg) : dwleg) {
+	for (hunits = 0; hunits <= ylimit; hunits += (armchair) ? wleg : (hunits == 0) ? hleg : hleg * (abs(pointy) > 1 ? 2 : 1)) {
+		for (wunits = ((pointy > 0) ? (armchair) ? hleg : wleg : 0); wunits <= xlimit; wunits += (armchair) ? (holey > 0) ? hleg : (dhleg - hleg) : dwleg) {
 			fprintf(file, "%f	%f	0\n", wunits, hunits);
 			atoms++;
 			
 			// Start Translations, if applicable
-			if (ytrans == 0 && xtrans != 0) {
-				for (ix = 1; ix <= xtrans; ix++) {
-					if (wunits != 0) {
-						transx = wunits + (ix * (xlimit - fxdiff));			
-						fprintf(file, "%f	%f	0\n", transx, hunits);
-					}
-				}			
-			} else {
+			for (ix = 1; ix <= xtrans; ix++) {
+				transx = wunits + (ix * (xlimit - fxdiff));
+				fprintf(file, "%f	%f	0\n", transx, hunits);
 				for (iy = 1; iy <= ytrans; iy++) {
 					transy = hunits + (iy * (ylimit - fydiff));
-					for (ix = 1; ix <= xtrans; ix++) {
-						transx = wunits + (ix * (xlimit - fxdiff));	
-						fprintf(file, "%f	%f	0\n", wunits, transy);
-						fprintf(file, "%f	%f	0\n", transx, hunits);
-						fprintf(file, "%f	%f	0\n", transx, transy);
-					}
-				}				
+					fprintf(file, "%f	%f	0\n", wunits, transy);
+					fprintf(file, "%f	%f	0\n", transx, transy);
+				}
 			}
 			
 			if (hunits == 0)
@@ -220,7 +204,7 @@ int StandardLoop () {
 			pointy = -1;
 		} else {
 			pointy += sign(pointy);
-			if ((abs(pointy)) > ((armchair == 1)?1:2)) 
+			if ((abs(pointy)) > ((armchair)?1:2)) 
 				pointy = -sign(pointy);
 		}
 		
@@ -243,15 +227,12 @@ int main () {
 	}
 	
 	// Limits for the loops
-	// Add distance across hexagon to x
-	// and height of hexagon to y 
-	// to allow for hexagons to complete
-	ylimit = y; // + (2*hleg) + 1.42;
-	xlimit = x; // + dwleg;
+	ylimit = y;
+	xlimit = x; 
 
-	fxdiff = fmod(xlimit, ((armchair)?2.84:dwleg));
+	fxdiff = fmod(xlimit, ((armchair)?dhleg:dwleg));
 	
-	fydiff = ((armchair)?dwleg:(2.84));
+	fydiff = ((armchair)?dwleg:(dhleg));
 	fydiff = fmod(ylimit, fydiff);
 	
 	printf("Unit Cell X: %f\n", (xlimit - fxdiff));

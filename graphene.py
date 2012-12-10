@@ -22,14 +22,12 @@ def Hamiltonian(gc):
     R = sqrt(square(x.T-x) + square(y.T-y) + square (z.T-z))
     
     H = zeros(shape=(numH, numH))
-    print numH
     for k in xrange(0, (numH)):
         for l in xrange(0, (numH)):
             if R[k,l] <= 1.45 and R[k,l] >= 1.38:
                 H[k,l]=-2.7
 #            else:
 #                H[k,l]=0
-    print H
     savetxt('pythonHam.txt', H, delimiter='\t', fmt='%f')
     return H
     

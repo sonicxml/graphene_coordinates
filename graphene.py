@@ -27,7 +27,7 @@ import gc as garcol                 # Used for garbage collection to help save m
 #   Numpy python module
 #   Scipy python module
 #   Matplotlib python module
-#   iPython (optional)
+#   IPython (optional)
 # To run, in a python shell type %run filename.py (for Windows machines)
 # To change parameters of the graphene lattice, open the parameters() function and change away
 

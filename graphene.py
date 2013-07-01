@@ -45,6 +45,9 @@ import gc as garcol                 # Used for garbage collection to help save m
 
 # Speed boost options: PyPy, numexpr, scipy sparse matrix, pytables, cython
 # http://technicaldiscovery.blogspot.com/2011/06/speeding-up-python-numpy-cython-and.html
+# http://www.physics.udel.edu/~bnikolic/teaching/phys824/MATLAB/
+# http://deeplearning.net/software/theano/
+# "Another way of computing inverses involves gram-schmidt orthogonalization and then transposing the matrix, the transpose of an orthogonalized matrix is its inverse!"
 
 def parameters():
     #
@@ -74,7 +77,7 @@ def parameters():
     # Units
     #
 
-    nanometers = False   # True if parameter units are in nanometers, false if in Angstroms
+    nanometers = True   # True if parameter units are in nanometers, false if in Angstroms
 
     #
     # General Lattice Paramters
@@ -84,7 +87,7 @@ def parameters():
     y = 15           # Height of the unit cell
     numxtrans = 1    # Number of times to translate unit cell along the x-axis
     numytrans = 2    # Number of times to translate unit cell along the y-axis
-    cuttype = 0      # 0 if no antidots, 1 if rectangular
+    cuttype = 1      # 0 if no antidots, 1 if rectangular
 
     #
     # Rectangular Antidot Parameters
@@ -92,7 +95,7 @@ def parameters():
 
     rectx = 5        # x-coordinate of the bottom left corner of the antidot
     recty = 5        # y-coordinate of the bottom left corner of the antidot
-    recth = 40       # Height of the antidot
+    recth = 5        # Height of the antidot
     rectw = 5        # Width of the antidot
 
     return 0
@@ -100,9 +103,10 @@ def parameters():
 def grmagnus(alpha, beta, betad, kp):
     # From J. Phys. F Vol 14, 1984, 1205, M P Lopez Sancho, J. Rubio
     # 20-50 % faster than gravik
-    tmp = linalg.inv(alpha.todense())           # Inverse part of Eq. 8
-    t = (-1*tmp)*(betad).todense()              # Eq. 8 (t0)
-    tt = (-1*tmp)*(beta).todense()              # Eq. 8 (t0 tilde)
+    # From Huckel IV Simulator
+    tmp = linalg.inv(alpha)                     # Inverse part of Eq. 8
+    t = (-1*tmp)*(betad)                        # Eq. 8 (t0)
+    tt = (-1*tmp)*(beta)                        # Eq. 8 (t0 tilde)
     T = t.copy()                                # First term in Eq. 16
     Id = eye(alpha.shape[0])                    # Save the identity matrix
     Toldt = Id.copy()                           # Product of tilde t in subsequent terms in Eq. 16
@@ -116,9 +120,8 @@ def grmagnus(alpha, beta, betad, kp):
         Toldt = Toldt.dot(tt) # Product of tilde t in subsequent terms in Eq. 16
         if (1/(linalg.cond(Id - dot(t,tt) - dot(tt,t)))) < etan:
             g = 0
-            nan_inf_flag = 1
             print "1: tmp NaN or Inf occured, return forced. Kp: " + str(kp)
-            return g #, nan_inf_flag
+            return g
 
         tmp = linalg.inv(Id - t.dot(tt) - tt.dot(t)) # Inverse part of Eq. 12
 
@@ -129,15 +132,13 @@ def grmagnus(alpha, beta, betad, kp):
 
         if isnan(change).sum() or isinf(change).sum():
             g = 0
-            nan_inf_flag = 1
             print "2: tmp NaN or Inf occured, return forced. Kp: " + str(kp)
-            return g #, nan_inf_flag
+            return g
 
     if (1/(linalg.cond(alpha + beta.dot(T)))) < etan:
         g = 0
-        nan_inf_flag = 1
         print "3: tmp NaN or Inf occured, return forced. Kp: " + str(kp)
-        return g #, nan_inf_flag
+        return g
 
     g = linalg.inv(alpha + beta.dot(T))
 
@@ -145,43 +146,42 @@ def grmagnus(alpha, beta, betad, kp):
 
     if gn.max() > 0.001 or counter > 99:
         g = 0
-        nan_inf_flag = 1
         print "4: Attention! not correct sgf. Kp: " + str(kp)
-        return g #, nan_inf_flag
+        return g
 
     nan_inf_flag = 0
 
     # Help save memory
-    del tmp, t, tt, T, Id, Toldt, change, counter, etag, etan, gn, nan_inf_flag
+    del tmp, t, tt, T, Id, Toldt, change, counter, etag, etan, gn
 
-    return g #, nan_inf_flag
+    return g
 
 def grmagnus2(alpha, beta, betad, kp):
     # grmagnus with sparse matrices
     # From J. Phys. F Vol 14, 1984, 1205, M P Lopez Sancho, J. Rubio
     # 20-50 % faster than gravik
+    # From Huckel IV Simulator
+    global I
     tmp = linalg.inv(alpha.todense())           # Inverse part of Eq. 8
     t = (-1*tmp)*(betad).todense()              # Eq. 8 (t0)
     tt = (-1*tmp)*(beta).todense()              # Eq. 8 (t0 tilde)
     T = t.copy()                                # First term in Eq. 16
-    Id = eye(alpha.shape[0])                    # Save the identity matrix
-    Toldt = Id.copy()                           # Product of tilde t in subsequent terms in Eq. 16
+    Toldt = I.copy()                            # Product of tilde t in subsequent terms in Eq. 16
     change = 1                                  # Convergence measure
-    counter = 0                 	            # Just to make sure no infinite loop
+    counter = 0                                 # Just to make sure no infinite loop
 
     etag = 0.000001
     etan = 0.0000000000001
     while linalg.norm(change) > etag and counter < 100:
         counter += 1
         Toldt = Toldt*tt # Product of tilde t in subsequent terms in Eq. 16
-        tmp = Id - t*tt - tt*t
+        tmp = I - t*tt - tt*t
         if (1/(linalg.cond(tmp))) < etan:
             g = 0
-            nan_inf_flag = 1
             print "1: tmp NaN or Inf occured, return forced. Kp: " + str(kp)
-            return g #, nan_inf_flag
+            return g
 
-        tmp = linalg.inv(tmp)                          # Inverse part of Eq. 12
+        tmp = faster_inverse(tmp)                      # Inverse part of Eq. 12
         t = (tmp*t*t)                                  # Eq. 12 (t_i)
         tt = (tmp*tt*tt)                               # Eq. 12 (t_i tilde)
         change = Toldt*t                               # Next term of Eq. 16
@@ -189,35 +189,32 @@ def grmagnus2(alpha, beta, betad, kp):
 
         if isnan(change).sum() or isinf(change).sum():
             g = 0
-            nan_inf_flag = 1
             print "2: tmp NaN or Inf occured, return forced. Kp: " + str(kp)
-            return g #, nan_inf_flag
+            return g
 
     g = (alpha + beta*T)
 
     if (1/(linalg.cond(g))) < etan:
         g = 0
-        nan_inf_flag = 1
         print "3: tmp NaN or Inf occured, return forced. Kp: " + str(kp)
-        return g #, nan_inf_flag
+        return g
 
-    g = linalg.inv(g)
+    g = faster_inverse(g)
     gn = (abs(g - linalg.inv(alpha - beta*g*betad)))
 
     if gn.max() > 0.001 or counter > 99:
         g = 0
-        nan_inf_flag = 1
         print "4: Attention! not correct sgf. Kp: " + str(kp)
-        return g #, nan_inf_flag
-
-    nan_inf_flag = 0
+        return g
 
     # Help save memory
-    del tmp, t, tt, T, Id, Toldt, change, counter, etag, etan, gn, nan_inf_flag
+    del tmp, t, tt, T, Toldt, change, counter, etag, etan, gn
 
-    return g #, nan_inf_flag
+    return g
 
 def gravik(alpha, beta, betad):
+    # From J. Phys. F Vol 14, 1984, 1205, M P Lopez Sancho, J. Rubio
+    # From Huckel IV Simulator
     ginit = alpha.I
     g = ginit.copy()
     eps = 1
@@ -297,8 +294,8 @@ def hamiltonian(coord):
     return H, atoms
 
 def transmission(H, atoms):
+    global I, Ic
     # Calculate the transmission across the graphene sheet using a recursive Non-Equilibrium Green's Function
-
     atomsh = atoms // 2
     if atoms%2 != 0:
         atoms -= 1
@@ -306,7 +303,7 @@ def transmission(H, atoms):
     print str(atomsh)
 
     # Make Hon and Hoff each half of H
-    H = asmatrix(H)     # Convert H to a matrix
+    H = asmatrix(H)                        # Convert H to a matrix
     Hon = sparse.dia_matrix(H[0:atomsh,0:atomsh])
     Hoff = sparse.dia_matrix(H[0:atomsh,(atomsh):atoms])
     Hoffd = sparse.dia_matrix(Hoff.H)      # Conjugate Transpose of Hoff
@@ -315,9 +312,11 @@ def transmission(H, atoms):
     eta = -0.003
     etao = 0.001
 
-    I = sparse.eye(Hon.shape[0])     # I is an identity matrix that is the size of Hon
+    I = eye(Hon.shape[0])     # I is an identity matrix that is the size of Hon
+    Ic = eye(Hon.shape[0], dtype=cfloat)
 
-    Ne = 101        # Number of data points
+
+    Ne = 5        # Number of data points
 
     E = linspace(-2, 2, Ne)     # Energy Levels to calculate transmission at
 
@@ -358,19 +357,19 @@ def transmission(H, atoms):
         gam1 = (1j * (sig1 - sig1.H))
         gam2 = (1j * (sig2 - sig2.H))
 
-        # G = linalg.inv(((EE + 1j*etao)*I - Hon - sig1 - sig2))
-        G = linalg.inv(((EE - 1j*0.003)*I.todense() - Hon - sig1 - sig2))
+        G = ((EE - 1j*0.003)*I - Hon - sig1 - sig2)
+        n_eq = G.shape[1]
+        results = linalg.lapack_lite.zgesv(n_eq, G.shape[0], G, n_eq, zeros(n_eq, intc), Ic, n_eq, 0)
+        G = asmatrix(Ic)
+        Ic = eye(Hon.shape[0], dtype=cfloat)
 
         # Help save memory
-        del sig1, sig2
+        del sig1, sig2, n_eq
 
-        Tr = (gam1*G*gam2*(G.H))
+        T[kp] = trace(gam1*G*gam2*(G.H)).real
 
         # Help save memory
         del gam1, gam2, G
-
-        T[kp] = trace(Tr).real
-        print T[kp]
     data = column_stack((E,T))
     savetxt('pythonData.txt', data, delimiter='\t', fmt='%f')
     plot(E,T)
@@ -569,10 +568,6 @@ def vgenerator():
         oppy = recty + recth
 
     (x,y,z) = coord.shape
-    print x
-    print y
-    print coord
-
     a = 0
     while a < x:
         # Translate vector form of coord into xyz points of coord2
@@ -601,6 +596,7 @@ def vgenerator():
 
     # Save as a MATLAB file for easy viewing and to compare MATLAB results with Python results
     sio.savemat('coord.mat', {'coord':coord})
+
     # Save xyz coordinates to graphenecoordinates.txt
     savetxt('graphenecoordinates.txt', coord2, delimiter='\t', fmt='%f')
 
@@ -610,7 +606,7 @@ def vhamiltonian(coord):
     global xdist, ydist, zdist
 
     # Generates the Hamiltonian of the sheet
-    # Uses -2.7 eV as the interaction (hopping) parameter
+    # Uses t = -2.7 eV as the interaction (hopping) parameter
     # Only does nearest-neighbor calculations
 
     (x,y,z) = coord.shape
@@ -650,6 +646,26 @@ def vertconvert(x):
     x = column_stack((x))
     return x
 
+def faster_inverse(A):
+    # http://stackoverflow.com/questions/11972102/is-there-a-way-to-efficiently-invert-an-array-of-matrices-with-numpy
+    # http://nullege.com/codes/show/src%40n%40u%40numpy-refactor-HEAD%40numpy%40linalg%40linalg.py/18/numpy.core.zeros/python
+    # http://www.netlib.org/lapack/double/dgesv.f
+    # http://www.netlib.org/lapack/complex16/zgesv.f
+
+    # Even faster inverse
+    # numpy/scipy's linalg.inv(A) essentially does linalg.solve(A, identity(A.shape[0])
+    # Looking into linalg.solve(), one can see that there are many safeguards to ensure the correct input
+    # Removing those safeguards greatly speeds up the code
+
+    global Ic
+
+    b = Ic.copy()
+    n_eq = A.shape[1]
+    results = linalg.lapack_lite.zgesv(n_eq, A.shape[0], A, n_eq, zeros(n_eq, intc), b, n_eq, 0)
+    if results['info'] > 0:
+        raise LinAlgError('Singular matrix')
+    return asmatrix(b)
+
 def translator(gc, numxtrans, numytrans):
     # WIP
     # Cannot yet translate in both x and y directions
@@ -670,19 +686,16 @@ def translator(gc, numxtrans, numytrans):
     for counter in xrange(4):
         for i in xrange(numxtrans if (numxtrans > numytrans) else numytrans):
             gc1trans = copy(gc1)
-            #gc2 = filter(lambda a: a != 0, gc2) - Was used to remove zeroes, but adding (xlimit+1.24) solves that problem - could possibly have also used trim_zeroes
             if i < numxtrans and (counter == 2 or counter == 3):
                 gc1trans = [x+((xlimit+1.24)*(i+1)) for x in gc1trans]
             gc1trans = vertconvert(gc1trans)
 
             gc2trans = copy(gc2)
-            # gc3 = gc3[(gc3.shape[0]-gc2.shape[0]):(gc3.shape[0]),] - see above comment
             if i < numytrans and (counter == 1 or counter == 3):
                 gc2trans = [y+((ylimit+1.24)*(i+1)) for y in gc2trans]
             gc2trans = vertconvert(gc2trans)
 
             gc3trans = copy(gc3)
-            # gc4 = gc4[(gc4.shape[0]-gc2.shape[0]):(gc4.shape[0]),] - see above comment
             gc3trans = vertconvert(gc3trans)
 
             gc1trans = column_stack((gc1trans,gc2trans))
@@ -736,6 +749,27 @@ def randomcode():
     #   print t1.timeit(number=1)
     #   print t2.timeit(number=1)
 
+    # Slow faster version of faster_inverse
+
+    # (Slow) Fast version
+    #   lapack_routine = lapack_lite.zgesv
+    #   print A.shape
+    #   b = eye(A.shape[0], dtype=A.dtype)
+    #   n_eq = A.shape[1]
+    #   n_rhs = A.shape[0]
+    #   pivots = zeros(n_eq, intc)
+    #   identity = eye(n_eq)
+    #   b = copy(identity)
+    #   results = linalg.lapack_lite.zgesv(n_eq, n_rhs, A, n_eq, pivots, b, n_eq, 0)
+    #   if results['info'] > 0:
+    #       raise LinAlgError('Singular matrix')
+
+    # For speed testing, in IPython type (after commenting out show plot of Transmission and graphene)
+    #   %timeit -n 20 %run graphenex-xx.py
+    #   Where 20 is the number of times you want it to loop / 3
+
+    # Translator Remove Zeroes
+    #   gc2 = filter(lambda a: a != 0, gc2) - Was used to remove zeroes, but adding (xlimit+1.24) solves that problem
     return 0
 
 if __name__ == '__main__':

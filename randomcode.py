@@ -230,3 +230,77 @@ def random_code():
     #
     #     return g
     pass
+def sign(x):
+    # Returns 1 if x > 0, 0 if x == 0, -1 if x < 0
+    """
+
+    :param x:
+    :return:
+    """
+    return x > 0 - x < 0
+
+
+def vert_convert(x):
+    # Convert a 1xn array to nx1
+    """
+
+    :param x:
+    :return:
+    """
+    x = np.atleast_2d(x)
+    x = np.column_stack(x)     # column_stack((x)) may or may not have redundant parentheses
+    return x
+
+
+def faster_inverse(A):
+    """
+    stackoverflow.com/questions/11972102/is-there-a-way-to-efficiently-invert-an-array-of-matrices-with-numpy
+    nullege.com/codes/show/src%40n%40u%40numpy-refactor-HEAD%40numpy%40linalg%40linalg.py/18/numpy.core.zeros/python
+    www.netlib.org/lapack/double/dgesv.f
+    www.netlib.org/lapack/complex16/zgesv.f
+
+    Even faster inverse
+    numpy/scipy's linalg.inv(A) essentially does linalg.solve(A, identity(A.shape[0])
+    Looking into linalg.solve(), one can see that there are many safeguards to ensure the correct input
+    Removing those safeguards greatly speeds up the code
+
+    :param A:
+    :return: :raise:
+    """
+    global Ic
+    return np.asmatrix(linalg.lapack.zgesv(A, np.copy(Ic))[2])
+
+
+def translator(gc, num_x_trans, num_y_trans):
+    # WIP
+    # Cannot yet translate in both x and y directions
+
+    # Translate an array gc num_x_trans times horizontally and num_y_trans vertically
+
+    global x_limit, y_limit
+
+    gc1 = np.copy(gc[:, 0])
+    gc2 = np.copy(gc[:, 1])
+    gc3 = np.copy(gc[:, 2])
+
+    for counter in xrange(4):
+        for i in xrange(num_x_trans if (num_x_trans > num_y_trans) else num_y_trans):
+            gc1trans = np.copy(gc1)
+            if i < num_x_trans and (counter == 2 or counter == 3):
+                gc1trans = [x + ((x_limit + 1.24) * (i + 1)) for x in gc1trans]
+            gc1trans = vert_convert(gc1trans)
+
+            gc2trans = np.copy(gc2)
+            if i < num_y_trans and (counter == 1 or counter == 3):
+                gc2trans = [y + ((y_limit + 1.24) * (i + 1)) for y in gc2trans]
+            gc2trans = vert_convert(gc2trans)
+
+            gc3trans = np.copy(gc3)
+            gc3trans = vert_convert(gc3trans)
+
+            gc1trans = np.column_stack((gc1trans, gc2trans))
+            gc1trans = np.column_stack((gc1trans, gc3trans))
+
+            gc = np.concatenate((gc, gc1trans), axis=0)
+
+    return gc
